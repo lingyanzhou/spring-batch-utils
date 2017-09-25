@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:batch="http://www.springframework.org/schema/batch"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/batch
+        http://www.springframework.org/schema/batch/spring-batch.xsd ">
+
+    <bean abstract="true" id="jobRepository"  class="org.springframework.batch.core.repository.support.SimpleJobRepository" />
+    <batch:job id="job" abstract="true">
+        <batch:step id="step-readLastRun">
+            <batch:tasklet ref="readLastRunTasklet" />
+        </batch:step>
+        <batch:step id="step-readCurTime">
+            <batch:tasklet ref="readLastRunTasklet" />
+        </batch:step>
+        <batch:step id="step-prepareStageTable">
+            <batch:tasklet ref="prepareStageTable" />
+        </batch:step>
+        <batch:step id="step-migrateToStageTable">
+            <tasklet>
+                <chunk reader="migrateToStageTableReader" writer="migrateToStageTableWriter"/>
+            </tasklet>
+        </batch:step>
+        <batch:step id="step-dumpToFinalTable">
+            <batch:tasklet ref="dumpToFinalTable" />
+        </batch:step>
+        <batch:step id="step-updateLastRun">
+            <batch:tasklet ref="updateLastRunTasklet" />
+        </batch:step>
+    </batch:job>
+
+    <bean abstract="true" id="readLastRunTasklet" class="lzhou.spring.batch.batchutils.database.tasklet.SqlQueryTasklet" />
+    <bean abstract="true" id="readCurTimeTasklet" class="lzhou.spring.batch.batchutils.database.tasklet.SqlQueryTasklet" />
+    <bean abstract="true" id="prepareStageTable" class="lzhou.spring.batch.batchutils.database.tasklet.SqlExecuteTasklet" />
+    <bean abstract="true" id="dumpToFinalTable" class="lzhou.spring.batch.batchutils.database.tasklet.SqlExecuteTasklet" />
+    <bean abstract="true" id="migrateToStageTableReader" class="org.springframework.batch.item.database.JdbcCursorItemReader" />
+    <bean abstract="true" id="migrateToStageTableWriter" class="org.springframework.batch.item.database.JdbcBatchItemWriter" />
+    <bean abstract="true" id="updateLastRunTasklet" class="lzhou.spring.batch.batchutils.database.tasklet.SqlExecuteTasklet" />
+</beans>
